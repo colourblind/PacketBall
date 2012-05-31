@@ -3,7 +3,7 @@
 #include "cinder/Camera.h"
 #include "cinder/Rand.h"
 #include "cinder/Vector.h"
-#include "shapefil.h"
+#include "ShapeLib/shapefil.h"
 
 using namespace std;
 using namespace cinder;
@@ -41,8 +41,8 @@ void PacketBall::setup()
 
     glEnable(GL_FOG);
     glFogi(GL_FOG_MODE, GL_EXP2);
-    glFogf (GL_FOG_DENSITY, 0.5);
-    glHint (GL_FOG_HINT, GL_NICEST); 
+    glFogf(GL_FOG_DENSITY, 0.5);
+    glHint(GL_FOG_HINT, GL_NICEST); 
 
     gl::enableDepthRead();
     gl::enableDepthWrite();
