@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost"
+				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost;pcap"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,10 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cinder_d.lib shapelib_i.lib"
+				AdditionalDependencies="cinder_d.lib shapelib_i.lib wpcap.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_d.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib"
+				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib;pcap"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -91,7 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -123,7 +123,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost"
+				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost;pcap"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -142,9 +142,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cinder.lib shapelib_i.lib"
+				AdditionalDependencies="cinder.lib shapelib_i.lib wpcap.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib"
+				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib;pcap"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -172,7 +172,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -201,7 +201,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost"
+				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost;pcap"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;SCREENSAVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -221,10 +221,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cinder_d.lib comctl32.lib scrnsavw.lib shapelib_i.lib"
+				AdditionalDependencies="cinder_d.lib comctl32.lib scrnsavw.lib shapelib_i.lib wpcap.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_d.scr"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib"
+				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib;pcap"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -251,7 +251,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -283,7 +283,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost"
+				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost;pcap"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SCREENSAVER"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -302,10 +302,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cinder.lib comctl32.lib scrnsavw.lib shapelib_i.lib"
+				AdditionalDependencies="cinder.lib comctl32.lib scrnsavw.lib shapelib_i.lib wpcap.lib"
 				OutputFile="$(OutDir)\$(ProjectName).scr"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib"
+				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib;pcap"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -333,7 +333,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -362,7 +362,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost"
+				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost;pcap"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;SCREENSAVER"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -382,10 +382,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cinder_d.lib comctl32.lib ..\..\lib\scrnsavw.lib shapelib_i.lib"
+				AdditionalDependencies="cinder_d.lib comctl32.lib ..\..\lib\scrnsavw.lib shapelib_i.lib wpcap.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_xp_d.scr"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib"
+				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib;pcap"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -412,7 +412,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -444,7 +444,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost"
+				AdditionalIncludeDirectories="..\..\cinder\include;..\..\cinder\boost;pcap"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SCREENSAVER"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -463,10 +463,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cinder.lib comctl32.lib ..\..\lib\scrnsavw.lib shapelib_i.lib"
+				AdditionalDependencies="cinder.lib comctl32.lib ..\..\lib\scrnsavw.lib shapelib_i.lib wpcap.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_xp.scr"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib"
+				AdditionalLibraryDirectories="..\..\cinder\lib;..\..\cinder\lib\msw;ShapeLib;pcap"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -494,7 +494,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

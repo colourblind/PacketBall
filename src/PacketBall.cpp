@@ -4,6 +4,7 @@
 #include "cinder/Rand.h"
 #include "cinder/Vector.h"
 #include "ShapeLib/shapefil.h"
+#include "pcap/pcap.h"
 
 using namespace std;
 using namespace cinder;
@@ -15,10 +16,29 @@ using namespace cinder::app;
     #define APP_TYPE    AppBasic
 #endif
 
+struct ip_address{
+    unsigned char byte[4];
+};
+
+struct ip_header{
+    unsigned char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
+    unsigned char  tos;            // Type of service 
+    unsigned short tlen;           // Total length 
+    unsigned short identification; // Identification
+    unsigned short flags_fo;       // Flags (3 bits) + Fragment offset (13 bits)
+    unsigned char  ttl;            // Time to live
+    unsigned char  proto;          // Protocol
+    unsigned short crc;            // Header checksum
+    ip_address  saddr;      // Source address
+    ip_address  daddr;      // Destination address
+    unsigned int   op_pad;         // Option + Padding
+};
+
 class PacketBall : public APP_TYPE
 {
 public:
     virtual void setup();
+    virtual void shutdown();
     virtual void update();
     virtual void draw();
     
@@ -28,6 +48,8 @@ private:
     SHPHandle shapefile_;
     int entityCount_, shapeType_;
     double minBounds_[4], maxBounds_[4];
+    pcap_t *capture_;
+    FILE *fp_;
 };
 
 void PacketBall::setup()
@@ -36,6 +58,21 @@ void PacketBall::setup()
 
     shapefile_ = SHPOpen("GSHHS_c_L1", "rb");
     SHPGetInfo(shapefile_, &entityCount_, &shapeType_, minBounds_, maxBounds_);
+
+    fp_ = fopen("test.txt", "w");
+
+    char errbuf[PCAP_ERRBUF_SIZE];
+    pcap_if_t *devices;
+    if (pcap_findalldevs(&devices, errbuf) == -1)
+        exit(1);
+    int i;
+    pcap_if_t *d;
+    for (i = 0, d = devices; d != NULL; d = d->next)
+        fprintf(fp_, "%s\n", d->name);
+    capture_ = pcap_open_live(devices->name, 100, 0, 20, errbuf);
+    fprintf(fp_, "DEV: %s %d\n", devices->name, capture_);
+    fflush(fp_);
+    pcap_freealldevs(devices);
 
     rotation_ = 0;
 
@@ -50,6 +87,11 @@ void PacketBall::setup()
     gl::enableAlphaBlending();
 }
 
+void PacketBall::shutdown()
+{
+    fclose(fp_);
+}
+
 void PacketBall::update()
 {
     timer_.stop();
@@ -59,6 +101,16 @@ void PacketBall::update()
     rotation_ += (msecs / 100);
     if (rotation_ > 360)
         rotation_ -= 360;
+
+    pcap_pkthdr *header = NULL;
+    const unsigned char *data = NULL;
+    while (pcap_next_ex(capture_, &header, &data) > 0)
+    {
+        ip_header *ip = (ip_header *)(data + 14);
+
+        fprintf(fp_, "Data: %d.%d.%d.%d -> %d.%d.%d.%d\n", ip->saddr.byte[0], ip->saddr.byte[1], ip->saddr.byte[2], ip->saddr.byte[3], ip->daddr.byte[0], ip->daddr.byte[1], ip->daddr.byte[2], ip->daddr.byte[3]);
+        fflush(fp_);
+    }
 }
 
 void PacketBall::draw()
