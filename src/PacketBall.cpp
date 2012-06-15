@@ -5,6 +5,7 @@
 #include "cinder/Vector.h"
 #include "ShapeLib/shapefil.h"
 #include "pcap/pcap.h"
+#include "geoip.h"
 
 using namespace std;
 using namespace cinder;
@@ -50,6 +51,7 @@ private:
     double minBounds_[4], maxBounds_[4];
     pcap_t *capture_;
     FILE *fp_;
+    GeoIp geoIp_;
 };
 
 void PacketBall::setup()
@@ -73,6 +75,8 @@ void PacketBall::setup()
     fprintf(fp_, "DEV: %s %d\n", devices->name, capture_);
     fflush(fp_);
     pcap_freealldevs(devices);
+
+    geoIp_.Init();
 
     rotation_ = 0;
 
@@ -108,7 +112,12 @@ void PacketBall::update()
     {
         ip_header *ip = (ip_header *)(data + 14);
 
-        fprintf(fp_, "Data: %d.%d.%d.%d -> %d.%d.%d.%d\n", ip->saddr.byte[0], ip->saddr.byte[1], ip->saddr.byte[2], ip->saddr.byte[3], ip->daddr.byte[0], ip->daddr.byte[1], ip->daddr.byte[2], ip->daddr.byte[3]);
+        Location src = geoIp_.Lookup(ip->saddr.byte);
+        Location dst = geoIp_.Lookup(ip->daddr.byte);
+
+        fprintf(fp_, "Data: %d.%d.%d.%d (%s - %s %f/%f)-> %d.%d.%d.%d (%s %s %f/%f)\n", 
+            ip->saddr.byte[0], ip->saddr.byte[1], ip->saddr.byte[2], ip->saddr.byte[3], src.countryName.c_str(), src.city.c_str(), src.latitude, src.longitude, 
+            ip->daddr.byte[0], ip->daddr.byte[1], ip->daddr.byte[2], ip->daddr.byte[3], dst.countryName.c_str(), dst.city.c_str(), dst.latitude, dst.longitude);
         fflush(fp_);
     }
 }
