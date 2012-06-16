@@ -114,9 +114,9 @@ void PacketBall::update()
     float msecs = 1000.0f * static_cast<float>(timer_.getSeconds());
     timer_.start();
 
-    rotation_ += (msecs / 100);
-    if (rotation_ > 360)
-        rotation_ -= 360;
+    rotation_ += (msecs / 10000);
+    if (rotation_ > M_PI * 2)
+        rotation_ -= M_PI * 2;
 
     pcap_pkthdr *header = NULL;
     const unsigned char *data = NULL;
@@ -154,11 +154,12 @@ void PacketBall::draw()
     gl::clear();
 
     CameraPersp cam = CameraPersp(getWindowWidth(), getWindowHeight(), 90, 0.5, 3);
-    cam.lookAt(Vec3f(1.75, 0, 0), Vec3f(0, 0, 0), Vec3f(0, 1, 0));
+
+    Vec3f camPos = Vec3f(math<float>::cos(rotation_), 0, math<float>::sin(rotation_)) * 1.75f;
+
+    cam.lookAt(camPos, Vec3f(0, 0, 0), Vec3f(0, 1, 0));
     gl::setMatrices(cam);
     gl::color(1, 1, 1);
-    gl::pushMatrices();
-    gl::rotate(Vec3f(0, rotation_, 0));
 
     for (int i = 0; i < entityCount_; i ++)
     {
@@ -172,8 +173,6 @@ void PacketBall::draw()
         glEnd();
         SHPDestroyObject(obj);
     }
-
-    gl::popMatrices();
 
     Vec3f right, up;
     cam.getBillboardVectors(&right, &up);
