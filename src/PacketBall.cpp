@@ -54,8 +54,8 @@ public:
     
 private:
     Vec3f ConvertLatLong(double lat, double lon);
-    vector<Ping> pings_;
 
+    vector<Ping> pings_;
     Timer timer_;
     float rotation_;
     SHPHandle shapefile_;
@@ -128,9 +128,9 @@ void PacketBall::update()
         Location dst = geoIp_.Lookup(ip->daddr.byte);
 
         if (src.latitude >= -180)
-            pings_.push_back(Ping(ConvertLatLong(src.longitude, src.latitude)));
+            pings_.push_back(Ping(ConvertLatLong(src.latitude, src.longitude)));
         if (dst.latitude >= -180)
-            pings_.push_back(Ping(ConvertLatLong(dst.longitude, dst.latitude)));
+            pings_.push_back(Ping(ConvertLatLong(dst.latitude, dst.longitude)));
 
         //fprintf(fp_, "Data: %d.%d.%d.%d (%s - %s %f/%f)-> %d.%d.%d.%d (%s %s %f/%f)\n", 
         //    ip->saddr.byte[0], ip->saddr.byte[1], ip->saddr.byte[2], ip->saddr.byte[3], src.countryName.c_str(), src.city.c_str(), src.latitude, src.longitude, 
@@ -157,6 +157,7 @@ void PacketBall::draw()
     cam.lookAt(Vec3f(1.75, 0, 0), Vec3f(0, 0, 0), Vec3f(0, 1, 0));
     gl::setMatrices(cam);
     gl::color(1, 1, 1);
+    gl::pushMatrices();
     gl::rotate(Vec3f(0, rotation_, 0));
 
     for (int i = 0; i < entityCount_; i ++)
@@ -165,25 +166,29 @@ void PacketBall::draw()
         glBegin(GL_LINE_STRIP);
         for (int j = 0; j < obj->nVertices; j ++)
         {
-            Vec3f pos = ConvertLatLong(obj->padfX[j], obj->padfY[j]);
+            Vec3f pos = ConvertLatLong(obj->padfY[j], obj->padfX[j]);
             glVertex3f(pos.x, pos.y, pos.z);
         }
         glEnd();
         SHPDestroyObject(obj);
     }
 
+    gl::popMatrices();
+
+    Vec3f right, up;
+    cam.getBillboardVectors(&right, &up);
     for (vector<Ping>::iterator iter = pings_.begin(); iter != pings_.end(); iter ++)
     {
-        gl::color(1, 1, 1, iter->lifetime / 3000);
-        gl::drawBillboard(iter->position, Vec2f(0.1f, 0.1f), 0, Vec3f(0, 1, 0), Vec3f(1, 0, 0));
+        gl::color(1, 1, 0, iter->lifetime / 3000);
+        gl::drawBillboard(iter->position, Vec2f(0.1f, 0.1f), 0, right, up);
     }
 }
 
-Vec3f PacketBall::ConvertLatLong(double lat, double lon)
+Vec3f PacketBall::ConvertLatLong(double lat_rads, double lon_rads)
 {
-    float x = lat * M_PI / 180;
-    float y = lon * M_PI / 180;
-    return Vec3f(math<float>::sin(x) * math<float>::cos(y), math<float>::sin(y), math<float>::cos(x) * math<float>::cos(y));
+    float lon = lon_rads * M_PI / 180;
+    float lat = lat_rads * M_PI / 180;
+    return Vec3f(math<float>::sin(lon) * math<float>::cos(lat), math<float>::sin(lat), math<float>::cos(lon) * math<float>::cos(lat));
 }
 
 #ifdef SCREENSAVER
