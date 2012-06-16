@@ -6,6 +6,7 @@
 #include "ShapeLib/shapefil.h"
 #include "pcap/pcap.h"
 #include "geoip.h"
+#include <vector>
 
 using namespace std;
 using namespace cinder;
@@ -35,6 +36,14 @@ struct ip_header{
     unsigned int   op_pad;         // Option + Padding
 };
 
+struct Ping
+{
+    Ping(Vec3f p) : position(p), lifetime(3000) { }
+
+    Vec3f position;
+    float lifetime;
+};
+
 class PacketBall : public APP_TYPE
 {
 public:
@@ -44,6 +53,9 @@ public:
     virtual void draw();
     
 private:
+    Vec3f ConvertLatLong(double lat, double lon);
+    vector<Ping> pings_;
+
     Timer timer_;
     float rotation_;
     SHPHandle shapefile_;
@@ -115,10 +127,25 @@ void PacketBall::update()
         Location src = geoIp_.Lookup(ip->saddr.byte);
         Location dst = geoIp_.Lookup(ip->daddr.byte);
 
-        fprintf(fp_, "Data: %d.%d.%d.%d (%s - %s %f/%f)-> %d.%d.%d.%d (%s %s %f/%f)\n", 
-            ip->saddr.byte[0], ip->saddr.byte[1], ip->saddr.byte[2], ip->saddr.byte[3], src.countryName.c_str(), src.city.c_str(), src.latitude, src.longitude, 
-            ip->daddr.byte[0], ip->daddr.byte[1], ip->daddr.byte[2], ip->daddr.byte[3], dst.countryName.c_str(), dst.city.c_str(), dst.latitude, dst.longitude);
-        fflush(fp_);
+        if (src.latitude >= -180)
+            pings_.push_back(Ping(ConvertLatLong(src.longitude, src.latitude)));
+        if (dst.latitude >= -180)
+            pings_.push_back(Ping(ConvertLatLong(dst.longitude, dst.latitude)));
+
+        //fprintf(fp_, "Data: %d.%d.%d.%d (%s - %s %f/%f)-> %d.%d.%d.%d (%s %s %f/%f)\n", 
+        //    ip->saddr.byte[0], ip->saddr.byte[1], ip->saddr.byte[2], ip->saddr.byte[3], src.countryName.c_str(), src.city.c_str(), src.latitude, src.longitude, 
+        //    ip->daddr.byte[0], ip->daddr.byte[1], ip->daddr.byte[2], ip->daddr.byte[3], dst.countryName.c_str(), dst.city.c_str(), dst.latitude, dst.longitude);
+        //fflush(fp_);
+    }
+
+    vector<Ping>::iterator iter = pings_.begin();
+    while (iter != pings_.end())
+    {
+        iter->lifetime -= msecs;
+        if (iter->lifetime < 0)
+            iter = pings_.erase(iter);
+        else
+            iter ++;
     }
 }
 
@@ -138,13 +165,25 @@ void PacketBall::draw()
         glBegin(GL_LINE_STRIP);
         for (int j = 0; j < obj->nVertices; j ++)
         {
-            float x = obj->padfX[j] * M_PI / 180;
-            float y = obj->padfY[j] * M_PI / 180;
-            glVertex3f(math<float>::sin(x) * math<float>::cos(y), math<float>::sin(y), math<float>::cos(x) * math<float>::cos(y));
+            Vec3f pos = ConvertLatLong(obj->padfX[j], obj->padfY[j]);
+            glVertex3f(pos.x, pos.y, pos.z);
         }
         glEnd();
         SHPDestroyObject(obj);
     }
+
+    for (vector<Ping>::iterator iter = pings_.begin(); iter != pings_.end(); iter ++)
+    {
+        gl::color(1, 1, 1, iter->lifetime / 3000);
+        gl::drawBillboard(iter->position, Vec2f(0.1f, 0.1f), 0, Vec3f(0, 1, 0), Vec3f(1, 0, 0));
+    }
+}
+
+Vec3f PacketBall::ConvertLatLong(double lat, double lon)
+{
+    float x = lat * M_PI / 180;
+    float y = lon * M_PI / 180;
+    return Vec3f(math<float>::sin(x) * math<float>::cos(y), math<float>::sin(y), math<float>::cos(x) * math<float>::cos(y));
 }
 
 #ifdef SCREENSAVER
