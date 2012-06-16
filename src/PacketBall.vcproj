@@ -91,7 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.dat $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\GSHHS_*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -172,7 +172,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.dat $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\GSHHS_*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -251,7 +251,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.dat $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\GSHHS_*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -333,7 +333,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.dat $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\GSHHS_*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -412,7 +412,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.dat $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\GSHHS_*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -494,7 +494,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.* $(OutDir) /y&#x0D;&#x0A;"
+				CommandLine="copy $(ProjectDir)\ShapeLib\*.dll $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\*.dat $(OutDir) /y&#x0D;&#x0A;copy $(ProjectDir)\..\resources\GSHHS_*.* $(OutDir) /y&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
