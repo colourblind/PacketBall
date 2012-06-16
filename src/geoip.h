@@ -6,6 +6,8 @@
 
 struct Location
 {
+    Location() : countryName("Unknown"), latitude(-200), longitude(-200) { }
+
 	std::string countryCode;
 	std::string countryName;
 	std::string region;

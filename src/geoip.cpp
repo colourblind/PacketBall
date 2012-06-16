@@ -66,7 +66,7 @@ Location GeoIp::Lookup(unsigned int ip)
 	int stringLen = 0;
 
 	int countryPtr = SeekCountry(ip);
-	if (countryPtr < 0)
+	if (countryPtr < 0 || countryPtr == segmentCount_)
 		return result;
 
 	int recordPtr = countryPtr + (2 * recordLength_ - 1) * segmentCount_;
