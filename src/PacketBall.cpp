@@ -18,6 +18,8 @@ using namespace cinder::app;
     #define APP_TYPE    AppBasic
 #endif
 
+const float PING_LIFETIME = 3000;
+
 struct ip_address{
     unsigned char byte[4];
 };
@@ -38,7 +40,7 @@ struct ip_header{
 
 struct Ping
 {
-    Ping(Vec3f p) : position(p), lifetime(3000) { }
+    Ping(Vec3f p) : position(p), lifetime(PING_LIFETIME) { }
 
     Vec3f position;
     float lifetime;
@@ -48,7 +50,6 @@ class PacketBall : public APP_TYPE
 {
 public:
     virtual void setup();
-    virtual void shutdown();
     virtual void update();
     virtual void draw();
     
@@ -62,7 +63,6 @@ private:
     int entityCount_, shapeType_;
     double minBounds_[4], maxBounds_[4];
     pcap_t *capture_;
-    FILE *fp_;
     GeoIp geoIp_;
 };
 
@@ -73,19 +73,11 @@ void PacketBall::setup()
     shapefile_ = SHPOpen("GSHHS_c_L1", "rb");
     SHPGetInfo(shapefile_, &entityCount_, &shapeType_, minBounds_, maxBounds_);
 
-    fp_ = fopen("test.txt", "w");
-
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_if_t *devices;
     if (pcap_findalldevs(&devices, errbuf) == -1)
         exit(1);
-    int i;
-    pcap_if_t *d;
-    for (i = 0, d = devices; d != NULL; d = d->next)
-        fprintf(fp_, "%s\n", d->name);
     capture_ = pcap_open_live(devices->name, 100, 0, 20, errbuf);
-    fprintf(fp_, "DEV: %s %d\n", devices->name, capture_);
-    fflush(fp_);
     pcap_freealldevs(devices);
 
     geoIp_.Init();
@@ -101,11 +93,6 @@ void PacketBall::setup()
     gl::enableDepthWrite();
 
     gl::enableAlphaBlending();
-}
-
-void PacketBall::shutdown()
-{
-    fclose(fp_);
 }
 
 void PacketBall::update()
@@ -131,11 +118,6 @@ void PacketBall::update()
             pings_.push_back(Ping(ConvertLatLong(src.latitude, src.longitude)));
         if (dst.latitude >= -180)
             pings_.push_back(Ping(ConvertLatLong(dst.latitude, dst.longitude)));
-
-        //fprintf(fp_, "Data: %d.%d.%d.%d (%s - %s %f/%f)-> %d.%d.%d.%d (%s %s %f/%f)\n", 
-        //    ip->saddr.byte[0], ip->saddr.byte[1], ip->saddr.byte[2], ip->saddr.byte[3], src.countryName.c_str(), src.city.c_str(), src.latitude, src.longitude, 
-        //    ip->daddr.byte[0], ip->daddr.byte[1], ip->daddr.byte[2], ip->daddr.byte[3], dst.countryName.c_str(), dst.city.c_str(), dst.latitude, dst.longitude);
-        //fflush(fp_);
     }
 
     vector<Ping>::iterator iter = pings_.begin();
@@ -178,7 +160,7 @@ void PacketBall::draw()
     cam.getBillboardVectors(&right, &up);
     for (vector<Ping>::iterator iter = pings_.begin(); iter != pings_.end(); iter ++)
     {
-        gl::color(1, 1, 0, iter->lifetime / 3000);
+        gl::color(1, 1, 0, iter->lifetime / PING_LIFETIME);
         gl::drawBillboard(iter->position, Vec2f(0.1f, 0.1f), 0, right, up);
     }
 }
