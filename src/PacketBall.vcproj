@@ -517,6 +517,14 @@
 			RelativePath=".\PacketBall.cpp"
 			>
 		</File>
+		<File
+			RelativePath=".\Resources.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Resources.rc"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

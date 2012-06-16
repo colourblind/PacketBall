@@ -1,11 +1,14 @@
 #include "cinder/app/AppScreenSaver.h"
 #include "cinder/app/AppBasic.h"
 #include "cinder/Camera.h"
+#include "cinder/ImageIo.h"
 #include "cinder/Rand.h"
 #include "cinder/Vector.h"
+#include "cinder/gl/Texture.h"
 #include "ShapeLib/shapefil.h"
 #include "pcap/pcap.h"
 #include "geoip.h"
+#include "Resources.h"
 #include <vector>
 
 using namespace std;
@@ -64,6 +67,7 @@ private:
     double minBounds_[4], maxBounds_[4];
     pcap_t *capture_;
     GeoIp geoIp_;
+    gl::Texture pingTexture_;
 };
 
 void PacketBall::setup()
@@ -81,6 +85,12 @@ void PacketBall::setup()
     pcap_freealldevs(devices);
 
     geoIp_.Init();
+
+    gl::Texture::Format format;
+    format.enableMipmapping(true);
+    format.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
+    format.setMagFilter(GL_LINEAR);
+    pingTexture_ = gl::Texture(loadImage(loadResource(RES_PING_TEXTURE)), format);
 
     rotation_ = 0;
 
@@ -158,11 +168,13 @@ void PacketBall::draw()
 
     Vec3f right, up;
     cam.getBillboardVectors(&right, &up);
+    pingTexture_.enableAndBind();
     for (vector<Ping>::iterator iter = pings_.begin(); iter != pings_.end(); iter ++)
     {
         gl::color(1, 1, 0, iter->lifetime / PING_LIFETIME);
         gl::drawBillboard(iter->position, Vec2f(0.1f, 0.1f), 0, right, up);
     }
+    pingTexture_.disable();
 }
 
 Vec3f PacketBall::ConvertLatLong(double lat_rads, double lon_rads)
