@@ -21,7 +21,7 @@ using namespace cinder::app;
     #define APP_TYPE    AppBasic
 #endif
 
-const float PING_LIFETIME = 3000;
+const float PING_LIFETIME = 10000;
 
 struct ip_address{
     unsigned char byte[4];
@@ -121,6 +121,10 @@ void PacketBall::update()
     {
         ip_header *ip = (ip_header *)(data + 14);
 
+        // Discard packets that aren't IPv4
+        if ((ip->ver_ihl >> 4) != 4)
+            continue;
+
         Location src = geoIp_.Lookup(ip->saddr.byte);
         Location dst = geoIp_.Lookup(ip->daddr.byte);
 
@@ -171,8 +175,8 @@ void PacketBall::draw()
     pingTexture_.enableAndBind();
     for (vector<Ping>::iterator iter = pings_.begin(); iter != pings_.end(); iter ++)
     {
-        gl::color(1, 1, 0, iter->lifetime / PING_LIFETIME);
-        gl::drawBillboard(iter->position, Vec2f(0.1f, 0.1f), 0, right, up);
+        gl::color(1, 1, 0.5f, iter->lifetime / PING_LIFETIME);
+        gl::drawBillboard(iter->position, Vec2f(0.2f, 0.2f), 0, right, up);
     }
     pingTexture_.disable();
 }
