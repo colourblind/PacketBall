@@ -502,15 +502,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\geoip.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\geoip.h"
-			>
-		</File>
-		<File
-			RelativePath=".\lookup.h"
 			>
 		</File>
 		<File
