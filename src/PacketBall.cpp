@@ -170,6 +170,8 @@ void PacketBall::draw()
         SHPDestroyObject(obj);
     }
 
+    gl::disableDepthWrite();
+
     Vec3f right, up;
     cam.getBillboardVectors(&right, &up);
     pingTexture_.enableAndBind();
@@ -179,6 +181,8 @@ void PacketBall::draw()
         gl::drawBillboard(iter->position, Vec2f(0.2f, 0.2f), 0, right, up);
     }
     pingTexture_.disable();
+
+    gl::enableDepthWrite();
 }
 
 Vec3f PacketBall::ConvertLatLong(double lat_rads, double lon_rads)
