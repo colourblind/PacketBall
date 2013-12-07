@@ -130,11 +130,30 @@ void PacketBall::update()
 
         Location src = geoIp_.Lookup(ip->saddr.byte);
         Location dst = geoIp_.Lookup(ip->daddr.byte);
+        string s = GetPacketString(ip, src, dst);
 
-        if (src.latitude >= -180)
-            pings_.push_back(Ping(ConvertLatLong(src.latitude, src.longitude), GetPacketString(ip, src, dst)));
-        if (dst.latitude >= -180)
-            pings_.push_back(Ping(ConvertLatLong(dst.latitude, dst.longitude), GetPacketString(ip, src, dst)));
+        // Look for an existing ping
+        Ping *p = NULL;
+        for (vector<Ping>::iterator iter = pings_.begin(); iter != pings_.end(); iter ++)
+        {
+            if (iter->text == s)
+            {
+                p = &(*iter);
+                break;
+            }
+        }
+
+        if (p == NULL)
+        {
+            if (src.latitude >= -180)
+                pings_.push_back(Ping(ConvertLatLong(src.latitude, src.longitude), s));
+            if (dst.latitude >= -180)
+                pings_.push_back(Ping(ConvertLatLong(dst.latitude, dst.longitude), s));
+        }
+        else
+        {
+            p->lifetime = PING_LIFETIME;
+        }
     }
 
     vector<Ping>::iterator iter = pings_.begin();
