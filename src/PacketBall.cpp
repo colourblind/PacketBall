@@ -10,6 +10,7 @@
 #include "geoip.h"
 #include "Resources.h"
 #include <vector>
+#include <sstream>
 
 using namespace std;
 using namespace cinder;
@@ -43,10 +44,11 @@ struct ip_header{
 
 struct Ping
 {
-    Ping(Vec3f p) : position(p), lifetime(PING_LIFETIME) { }
+    Ping(Vec3f p, string t) : position(p), lifetime(PING_LIFETIME), text(t) { }
 
     Vec3f position;
     float lifetime;
+    string text;
 };
 
 class PacketBall : public APP_TYPE
@@ -58,6 +60,7 @@ public:
     
 private:
     Vec3f ConvertLatLong(double lat, double lon);
+    string GetPacketString(ip_header *packet, Location src, Location dst);
 
     vector<Ping> pings_;
     Timer timer_;
@@ -129,9 +132,9 @@ void PacketBall::update()
         Location dst = geoIp_.Lookup(ip->daddr.byte);
 
         if (src.latitude >= -180)
-            pings_.push_back(Ping(ConvertLatLong(src.latitude, src.longitude)));
+            pings_.push_back(Ping(ConvertLatLong(src.latitude, src.longitude), GetPacketString(ip, src, dst)));
         if (dst.latitude >= -180)
-            pings_.push_back(Ping(ConvertLatLong(dst.latitude, dst.longitude)));
+            pings_.push_back(Ping(ConvertLatLong(dst.latitude, dst.longitude), GetPacketString(ip, src, dst)));
     }
 
     vector<Ping>::iterator iter = pings_.begin();
@@ -182,6 +185,15 @@ void PacketBall::draw()
     }
     pingTexture_.disable();
 
+    gl::setMatricesWindow(getWindowWidth(), getWindowHeight());
+    float y_offset = 0;
+    Font f("Arial", 16);
+    for (vector<Ping>::iterator iter = pings_.begin(); iter != pings_.end(); iter ++)
+    {
+        gl::drawString(iter->text, Vec2f(10, 10 + y_offset), ColorA(1, 1, 1, 1), f);
+        y_offset += 20;
+    }
+
     gl::enableDepthWrite();
 }
 
@@ -190,6 +202,16 @@ Vec3f PacketBall::ConvertLatLong(double lat_rads, double lon_rads)
     float lon = lon_rads * M_PI / 180;
     float lat = lat_rads * M_PI / 180;
     return Vec3f(math<float>::sin(lon) * math<float>::cos(lat), math<float>::sin(lat), math<float>::cos(lon) * math<float>::cos(lat));
+}
+
+string PacketBall::GetPacketString(ip_header *packet, Location src, Location dst)
+{
+    stringstream ss;
+    ss << static_cast<short>(packet->saddr.byte[0]) << "." << static_cast<short>(packet->saddr.byte[1]) << "." << static_cast<short>(packet->saddr.byte[2]) << "." << static_cast<short>(packet->saddr.byte[3]);
+    ss << " -> ";
+    ss << static_cast<short>(packet->daddr.byte[0]) << "." << static_cast<short>(packet->daddr.byte[1]) << "." << static_cast<short>(packet->daddr.byte[2]) << "." << static_cast<short>(packet->daddr.byte[3]);
+    ss << " (" << src.countryName << ") (" << dst.countryName << ")";
+    return ss.str();
 }
 
 #ifdef SCREENSAVER
