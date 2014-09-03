@@ -1,26 +1,14 @@
-#include "cinder/app/AppScreenSaver.h"
-#include "cinder/app/AppBasic.h"
-#include "cinder/Camera.h"
-#include "cinder/ImageIo.h"
-#include "cinder/Rand.h"
-#include "cinder/Vector.h"
-#include "cinder/gl/Texture.h"
+#include "Window.h"
+#include "World.h"
 #include "ShapeLib/shapefil.h"
 #include "pcap/pcap.h"
 #include "geoip.h"
-#include "Resources.h"
 #include <vector>
 #include <sstream>
+#include <memory>
 
+using namespace OnceMoreWithFeeling;
 using namespace std;
-using namespace cinder;
-using namespace cinder::app;
-
-#ifdef SCREENSAVER
-    #define APP_TYPE    AppScreenSaver
-#else
-    #define APP_TYPE    AppBasic
-#endif
 
 const float PING_LIFETIME = 10000;
 
@@ -44,39 +32,35 @@ struct ip_header{
 
 struct Ping
 {
-    Ping(Vec3f p, string t) : position(p), lifetime(PING_LIFETIME), text(t) { }
+    Ping(Vector p, string t) : position(p), lifetime(PING_LIFETIME), text(t) { }
 
-    Vec3f position;
+    Vector position;
     float lifetime;
     string text;
 };
 
-class PacketBall : public APP_TYPE
+class PacketBall : public World
 {
 public:
-    virtual void setup();
-    virtual void update();
-    virtual void draw();
+    virtual void Init(shared_ptr<Renderer> renderer);
+    virtual void Upate(float msecs);
+    virtual void Draw(shared_ptr<Renderer> renderer);
     
 private:
-    Vec3f ConvertLatLong(double lat, double lon);
+    Vector ConvertLatLong(double lat, double lon);
     string GetPacketString(ip_header *packet, Location src, Location dst);
 
     vector<Ping> pings_;
-    Timer timer_;
     float rotation_;
     SHPHandle shapefile_;
     int entityCount_, shapeType_;
     double minBounds_[4], maxBounds_[4];
     pcap_t *capture_;
     GeoIp geoIp_;
-    gl::Texture pingTexture_;
 };
 
-void PacketBall::setup()
+void PacketBall::Init(shared_ptr<Renderer> renderer)
 {
-    Rand::randomize();
-
     shapefile_ = SHPOpen("GSHHS_c_L1", "rb");
     SHPGetInfo(shapefile_, &entityCount_, &shapeType_, minBounds_, maxBounds_);
 
@@ -89,14 +73,10 @@ void PacketBall::setup()
 
     geoIp_.Init();
 
-    gl::Texture::Format format;
-    format.enableMipmapping(true);
-    format.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
-    format.setMagFilter(GL_LINEAR);
-    pingTexture_ = gl::Texture(loadImage(loadResource(RES_PING_TEXTURE)), format);
+    renderer->AddTexture("ping.png");
 
     rotation_ = 0;
-
+    /*
     glEnable(GL_FOG);
     glFogi(GL_FOG_MODE, GL_EXP2);
     glFogf(GL_FOG_DENSITY, 0.5);
@@ -106,17 +86,14 @@ void PacketBall::setup()
     gl::enableDepthWrite();
 
     gl::enableAlphaBlending();
+    */
 }
 
-void PacketBall::update()
+void PacketBall::Upate(float msecs)
 {
-    timer_.stop();
-    float msecs = 1000.0f * static_cast<float>(timer_.getSeconds());
-    timer_.start();
-
     rotation_ += (msecs / 10000);
-    if (rotation_ > M_PI * 2)
-        rotation_ -= M_PI * 2;
+    if (rotation_ > PI * 2)
+        rotation_ -= PI * 2;
 
     pcap_pkthdr *header = NULL;
     const unsigned char *data = NULL;
@@ -167,8 +144,9 @@ void PacketBall::update()
     }
 }
 
-void PacketBall::draw()
+void PacketBall::Draw(shared_ptr<Renderer> renderer)
 {
+    /*
     gl::clear();
 
     CameraPersp cam = CameraPersp(getWindowWidth(), getWindowHeight(), 90, 0.5, 3);
@@ -214,13 +192,14 @@ void PacketBall::draw()
     }
 
     gl::enableDepthWrite();
+    */
 }
 
-Vec3f PacketBall::ConvertLatLong(double lat_rads, double lon_rads)
+Vector PacketBall::ConvertLatLong(double lat_rads, double lon_rads)
 {
-    float lon = lon_rads * M_PI / 180;
-    float lat = lat_rads * M_PI / 180;
-    return Vec3f(math<float>::sin(lon) * math<float>::cos(lat), math<float>::sin(lat), math<float>::cos(lon) * math<float>::cos(lat));
+    float lon = lon_rads * PI / 180;
+    float lat = lat_rads * PI / 180;
+    return Vector(sin(lon) * cos(lat), sin(lat), cos(lon) * cos(lat));
 }
 
 string PacketBall::GetPacketString(ip_header *packet, Location src, Location dst)
@@ -233,8 +212,14 @@ string PacketBall::GetPacketString(ip_header *packet, Location src, Location dst
     return ss.str();
 }
 
-#ifdef SCREENSAVER
-    CINDER_APP_SCREENSAVER(PacketBall, RendererGl)
-#else
-    CINDER_APP_BASIC(PacketBall, RendererGl)
-#endif
+int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev, LPSTR commandLine, int show)
+{
+    srand(::GetTickCount());
+
+    OnceMoreWithFeeling::Window w(instance, show);
+    shared_ptr<Renderer> renderer = make_shared<Renderer>();
+    shared_ptr<World> world = make_shared<PacketBall>();
+
+    world->Init(renderer);
+    return w.Loop(world, renderer);
+}
