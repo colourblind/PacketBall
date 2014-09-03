@@ -1,5 +1,5 @@
 Captures packets via WinPCap, looks them up in MaxMind's GeoIP database and
-then plots them on a spinning globe rendered using Cinder.
+then plots them on a spinning globe rendered using Once More With Feeling.
 
 Standing on the shoulders of giants!
 
@@ -7,11 +7,16 @@ Standing on the shoulders of giants!
 
 EXTERNAL DEPENDENCIES
 
-LIB             VERSION         PATH (relative to repository root)
-Cinder          0.8.3           ../Lib/cinder
+https://github.com/colourblind/OnceMoreWithFeeling
 
 Included in the source tree:
 
 ShapeLib        1.3.0
 WinPCap         4.1.2
 GeoIP           1.4.8         
+
+CURRENT MID-PORT FROM CINDER TO OMWF
+Still need doing to get back to where we were:
+Pings
+Fog
+IP address/geolocation text
