@@ -1,5 +1,7 @@
 bin
 build
-*.ncb
 *.suo
 *.user
+*.sdf
+*.opensdf
+*.filters
