@@ -50,19 +50,54 @@ private:
     Vector ConvertLatLong(double lat, double lon);
     string GetPacketString(ip_header *packet, Location src, Location dst);
 
+    vector<shared_ptr<RenderObject>> landmasses_;
     vector<Ping> pings_;
     float rotation_;
-    SHPHandle shapefile_;
-    int entityCount_, shapeType_;
-    double minBounds_[4], maxBounds_[4];
     pcap_t *capture_;
     GeoIp geoIp_;
 };
 
 void PacketBall::Init(shared_ptr<Renderer> renderer)
 {
-    shapefile_ = SHPOpen("GSHHS_c_L1", "rb");
-    SHPGetInfo(shapefile_, &entityCount_, &shapeType_, minBounds_, maxBounds_);
+    glEnable(GL_DEPTH_TEST);
+
+    renderer->SetCameraPosition(Vector(0, 0, 2.5f));
+    renderer->AddTexture("ping.png");
+    renderer->AddShader("basic", "basic");
+
+    int entityCount, shapeType;
+    double minBounds[4], maxBounds[4];
+    SHPHandle shapefile = SHPOpen("GSHHS_c_L1", "rb");
+    SHPGetInfo(shapefile, &entityCount, &shapeType, minBounds, maxBounds);
+
+    for (int i = 0; i < entityCount; i++)
+    {
+        vector<float> points;
+
+        SHPObject *obj = SHPReadObject(shapefile, i);
+        for (int j = 0; j < obj->nVertices; j++)
+        {
+            Vector v = ConvertLatLong(obj->padfY[j], obj->padfX[j]);
+            points.push_back(v.x);
+            points.push_back(v.y);
+            points.push_back(v.z);
+        }
+        SHPDestroyObject(obj);
+
+        shared_ptr<Buffer> buffer = make_shared<Buffer>();
+        buffer->SetData(points);
+        shared_ptr<Object> object = make_shared<Object>();
+        object->AttachBuffer(0, buffer);
+
+        shared_ptr<RenderObject> renderObject = make_shared<RenderObject>();
+        renderObject->object = object;
+        renderObject->program = "basic|basic";
+        renderObject->colour[0] = renderObject->colour[1] = renderObject->colour[2] = 1;
+
+        landmasses_.push_back(renderObject);
+    }
+
+    SHPClose(shapefile);
 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_if_t *devices;
@@ -72,8 +107,6 @@ void PacketBall::Init(shared_ptr<Renderer> renderer)
     pcap_freealldevs(devices);
 
     geoIp_.Init();
-
-    renderer->AddTexture("ping.png");
 
     rotation_ = 0;
     /*
@@ -91,7 +124,7 @@ void PacketBall::Init(shared_ptr<Renderer> renderer)
 
 void PacketBall::Upate(float msecs)
 {
-    rotation_ += (msecs / 10000);
+    rotation_ += msecs * 0.0004f;
     if (rotation_ > PI * 2)
         rotation_ -= PI * 2;
 
@@ -146,6 +179,13 @@ void PacketBall::Upate(float msecs)
 
 void PacketBall::Draw(shared_ptr<Renderer> renderer)
 {
+    for (auto r : landmasses_)
+    {
+        r->transformation = Matrix::Rotate(0, rotation_, 0);
+        renderer->Draw(r, GL_LINE_STRIP);
+    }
+
+
     /*
     gl::clear();
 
