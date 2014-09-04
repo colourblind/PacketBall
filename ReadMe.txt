@@ -17,5 +17,4 @@ GeoIP           1.4.8
 
 CURRENT MID-PORT FROM CINDER TO OMWF
 Still need doing to get back to where we were:
-Pings
 IP address/geolocation text
