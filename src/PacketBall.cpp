@@ -39,6 +39,24 @@ struct Ping
     string text;
 };
 
+float planeVerts[] = {
+    -0.5f, -0.5f, 0,
+    -0.5f, 0.5f, 0,
+    0.5f, 0.5f, 0,
+    0.5f, 0.5f, 0,
+    0.5f, -0.5f, 0,
+    -0.5f, -0.5f, 0
+};
+
+float planeTexCoords[] = {
+    0, 0,
+    0, 1,
+    1, 1,
+    1, 1,
+    1, 0,
+    0, 0
+};
+
 class PacketBall : public World
 {
 public:
@@ -51,6 +69,7 @@ private:
     string GetPacketString(ip_header *packet, Location src, Location dst);
 
     vector<shared_ptr<RenderObject>> landmasses_;
+    shared_ptr<RenderObject> renderPing_;
     vector<Ping> pings_;
     float rotation_;
     pcap_t *capture_;
@@ -64,6 +83,21 @@ void PacketBall::Init(shared_ptr<Renderer> renderer)
     renderer->SetCameraPosition(Vector(0, 0, 2.5f));
     renderer->AddTexture("ping.png");
     renderer->AddShader("basic", "basic");
+    renderer->AddShader("ping", "ping");
+
+    shared_ptr<Buffer> pingVerts = make_shared<Buffer>();
+    shared_ptr<Buffer> pingTexCoords = make_shared<Buffer>();
+    pingVerts->SetData(planeVerts, 18);
+    pingTexCoords->SetData(planeTexCoords, 12);
+    shared_ptr<Object> pingObject = make_shared<Object>();
+    pingObject->AttachBuffer(0, pingVerts);
+    pingObject->AttachBuffer(1, pingTexCoords, 2);
+    renderPing_ = make_shared<RenderObject>();
+    renderPing_->object = pingObject;
+    renderPing_->program = "ping|ping";
+    renderPing_->colour[0] = 1;
+    renderPing_->colour[1] = 1;
+    renderPing_->colour[2] = 0.5f;
 
     int entityCount, shapeType;
     double minBounds[4], maxBounds[4];
@@ -103,23 +137,12 @@ void PacketBall::Init(shared_ptr<Renderer> renderer)
     pcap_if_t *devices;
     if (pcap_findalldevs(&devices, errbuf) == -1)
         exit(1);
-    capture_ = pcap_open_live(devices->name, 100, 0, 20, errbuf);
+    capture_ = pcap_open_live(devices->name, 100, 0, 5, errbuf);
     pcap_freealldevs(devices);
 
     geoIp_.Init();
 
     rotation_ = 0;
-    /*
-    glEnable(GL_FOG);
-    glFogi(GL_FOG_MODE, GL_EXP2);
-    glFogf(GL_FOG_DENSITY, 0.5);
-    glHint(GL_FOG_HINT, GL_NICEST); 
-
-    gl::enableDepthRead();
-    gl::enableDepthWrite();
-
-    gl::enableAlphaBlending();
-    */
 }
 
 void PacketBall::Upate(float msecs)
@@ -185,7 +208,21 @@ void PacketBall::Draw(shared_ptr<Renderer> renderer)
         renderer->Draw(r, GL_LINE_STRIP);
     }
 
-
+    unordered_map<unsigned int, string> bindings;
+    bindings.insert(make_pair(0, "ping.png"));
+    renderer->SetTextures("ping|ping", bindings);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glDepthMask(GL_FALSE);
+    for (auto p : pings_)
+    {   
+        Vector modelSpacePosition = Matrix::Rotate(0, rotation_, 0) * p.position;
+        Matrix billboard = Matrix::Billboard(Vector(0, 0, 2.5f), modelSpacePosition);
+        renderPing_->transformation = Matrix::Translate(modelSpacePosition) * billboard * Matrix::Scale(0.2f);
+        renderer->SetUniform("ping|ping", 1, p.lifetime / PING_LIFETIME);
+        renderer->Draw(renderPing_);
+    }
+    glDepthMask(GL_TRUE);
     /*
     gl::clear();
 
