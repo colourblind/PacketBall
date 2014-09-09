@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "World.h"
+#include "Utils.h"
 #include "ShapeLib/shapefil.h"
 #include "pcap/pcap.h"
 #include "geoip.h"
@@ -11,32 +12,62 @@ using namespace OnceMoreWithFeeling;
 using namespace std;
 
 const float PING_LIFETIME = 10000;
+const int SPLINE_DETAIL = 25;
 
 struct ip_address{
     unsigned char byte[4];
 };
 
 struct ip_header{
-    unsigned char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
-    unsigned char  tos;            // Type of service 
-    unsigned short tlen;           // Total length 
-    unsigned short identification; // Identification
-    unsigned short flags_fo;       // Flags (3 bits) + Fragment offset (13 bits)
-    unsigned char  ttl;            // Time to live
-    unsigned char  proto;          // Protocol
-    unsigned short crc;            // Header checksum
-    ip_address  saddr;      // Source address
-    ip_address  daddr;      // Destination address
-    unsigned int   op_pad;         // Option + Padding
+    unsigned char   ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
+    unsigned char   tos;            // Type of service 
+    unsigned short  tlen;           // Total length 
+    unsigned short  identification; // Identification
+    unsigned short  flags_fo;       // Flags (3 bits) + Fragment offset (13 bits)
+    unsigned char   ttl;            // Time to live
+    unsigned char   proto;          // Protocol
+    unsigned short  crc;            // Header checksum
+    ip_address      saddr;          // Source address
+    ip_address      daddr;          // Destination address
+    unsigned int    op_pad;         // Option + Padding
 };
 
 struct Ping
 {
-    Ping(Vector p, string t) : position(p), lifetime(PING_LIFETIME), text(t) { }
+    Ping(Vector home, Vector away, string t) : lifetime(PING_LIFETIME), text(t)
+    {
+        Vector middle = home + ((away - home) * 0.5f);
+        middle = middle.Normalise() * 1.2f;
+            
+        vector<Vector> points;
+        points.push_back(home);
+        points.push_back(middle);
+        points.push_back(away);
+        Spline s(points);
+        vector<Vector> splinePoints = s.GetPoints(SPLINE_DETAIL);
+        vector<float> sigh;
+        for (auto v : splinePoints)
+        {
+            sigh.push_back(v.x);
+            sigh.push_back(v.y);
+            sigh.push_back(v.z);
+        }
+        
+        shared_ptr<Buffer> b = make_shared<Buffer>();
+        b->SetData(sigh);
+        shared_ptr<Object> o = make_shared<Object>();
+        o->AttachBuffer(0, b);
+        spline = make_shared<RenderObject>();
+        spline->object = o;
+        spline->program = "spline|spline";
+        spline->colour[0] = 0;
+        spline->colour[1] = 1;
+        spline->colour[2] = 0;
+    }
 
-    Vector position;
     float lifetime;
     string text;
+    shared_ptr<RenderObject> spline;
 };
 
 float planeVerts[] = {
@@ -84,6 +115,7 @@ void PacketBall::Init(shared_ptr<Renderer> renderer)
     renderer->AddTexture("ping.png");
     renderer->AddShader("basic", "basic");
     renderer->AddShader("ping", "ping");
+    renderer->AddShader("spline", "spline");
 
     shared_ptr<Buffer> pingVerts = make_shared<Buffer>();
     shared_ptr<Buffer> pingTexCoords = make_shared<Buffer>();
@@ -178,10 +210,15 @@ void PacketBall::Upate(float msecs)
 
         if (p == NULL)
         {
+            // YOU LIVE IN GREENWICH NOW. NO ARGUMENTS.
+            Vector home(ConvertLatLong(51.48f, 0));
+            Vector away;
             if (src.latitude >= -180)
-                pings_.push_back(Ping(ConvertLatLong(src.latitude, src.longitude), s));
+                away = ConvertLatLong(src.latitude, src.longitude);
             if (dst.latitude >= -180)
-                pings_.push_back(Ping(ConvertLatLong(dst.latitude, dst.longitude), s));
+                away = ConvertLatLong(dst.latitude, dst.longitude);
+            
+            pings_.push_back(Ping(home, away, s));
         }
         else
         {
@@ -208,6 +245,7 @@ void PacketBall::Draw(shared_ptr<Renderer> renderer)
         renderer->Draw(r, GL_LINE_STRIP);
     }
 
+    /*
     unordered_map<unsigned int, string> bindings;
     bindings.insert(make_pair(0, "ping.png"));
     renderer->SetTextures("ping|ping", bindings);
@@ -223,6 +261,16 @@ void PacketBall::Draw(shared_ptr<Renderer> renderer)
         renderer->Draw(renderPing_);
     }
     glDepthMask(GL_TRUE);
+    */
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    for (auto p : pings_)
+    {
+        p.spline->transformation = Matrix::Rotate(0, rotation_, 0);
+        renderer->SetUniform(p.spline->program, 0, p.lifetime / PING_LIFETIME);
+        renderer->Draw(p.spline, GL_LINE_STRIP);
+    }
     /*
     gl::clear();
 
@@ -274,8 +322,8 @@ void PacketBall::Draw(shared_ptr<Renderer> renderer)
 
 Vector PacketBall::ConvertLatLong(double lat_rads, double lon_rads)
 {
-    float lon = lon_rads * PI / 180;
-    float lat = lat_rads * PI / 180;
+    float lon = static_cast<float>(lon_rads) * PI / 180;
+    float lat = static_cast<float>(lat_rads) * PI / 180;
     return Vector(sin(lon) * cos(lat), sin(lat), cos(lon) * cos(lat));
 }
 
