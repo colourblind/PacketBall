@@ -7,6 +7,7 @@
 #include <vector>
 #include <sstream>
 #include <memory>
+#include <Shellapi.h>
 
 using namespace OnceMoreWithFeeling;
 using namespace std;
@@ -169,6 +170,21 @@ void PacketBall::Init(shared_ptr<Renderer> renderer)
     pcap_if_t *devices;
     if (pcap_findalldevs(&devices, errbuf) == -1)
         exit(1);
+
+    int numArgs;
+    LPWSTR *args = ::CommandLineToArgvW(::GetCommandLineW(), &numArgs);
+    if (numArgs > 1)
+    {
+        wstring r(args[1]);
+        int deviceIndex = stoi(r);
+        for (int i = 0; i < deviceIndex; ++i)
+        {
+            if (devices->next == nullptr)
+                break;
+            devices = devices->next;
+        }
+    }
+
     capture_ = pcap_open_live(devices->name, 100, 0, 5, errbuf);
     pcap_freealldevs(devices);
 
@@ -262,14 +278,19 @@ void PacketBall::Draw(shared_ptr<Renderer> renderer)
     }
     glDepthMask(GL_TRUE);
     */
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    Vector textPosition(2, renderer->Height() - 16, 0);
     for (auto p : pings_)
     {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         p.spline->transformation = Matrix::Rotate(0, rotation_, 0);
         renderer->SetUniform(p.spline->program, 0, p.lifetime / PING_LIFETIME);
         renderer->Draw(p.spline, GL_LINE_STRIP);
+
+        renderer->DrawText(p.text, textPosition, 0.5f);
+        textPosition.y -= 16;
     }
     /*
     gl::clear();
